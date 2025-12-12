@@ -11,25 +11,9 @@ DB_CONFIG = {
     "user": "root",
     "password": "rudge21",
     "db": "api"
-
-mysql.init_app(app)
-
-def get_db_connection():
-    return pymysql.connect()
+}
 
 
-def fetch_all_employees():
-    conn = mysql.connect()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT * FROM employees")
-    employees = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return employees
-
-@app.route("/")
-def home():
-    return "Flask is running ✅"
 
 
 
