@@ -165,6 +165,53 @@ def get_employee(employee_id: int):
         return make_api_response({"error": "Employee not found."}, 404)
     return make_api_response({"employee": employee})
 
+
+@app.put("/employees/<int:employee_id>")
+@jwt_required()
+def update_employee(employee_id: int):
+    payload = request.get_json(silent=True) or {}
+    is_valid, sanitized = sanitize_employee_payload(payload, partial=True)
+    if not is_valid:
+        return make_api_response({"error": sanitized}, 400)
+
+    assignments = ", ".join(f"{field} = %s" for field in sanitized.keys())
+    values = list(sanitized.values()) + [employee_id]
+
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute(f"UPDATE employees SET {assignments} WHERE id = %s", values)
+        mysql.connection.commit()
+        if cursor.rowcount == 0:
+            cursor.close()
+            return make_api_response({"error": "Employee not found."}, 404)
+    except Exception as exc:
+        mysql.connection.rollback()
+        cursor.close()
+        return make_api_response({"error": "Database error.", "details": str(exc)}, 500)
+
+    cursor.close()
+    updated = fetch_employee(employee_id)
+    return make_api_response({"message": "Employee updated successfully.", "employee": updated})
+
+
+@app.delete("/employees/<int:employee_id>")
+@jwt_required()
+def delete_employee(employee_id: int):
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute("DELETE FROM employees WHERE id = %s", (employee_id,))
+        mysql.connection.commit()
+        if cursor.rowcount == 0:
+            cursor.close()
+            return make_api_response({"error": "Employee not found."}, 404)
+    except Exception as exc:
+        mysql.connection.rollback()
+        cursor.close()
+        return make_api_response({"error": "Database error.", "details": str(exc)}, 500)
+
+    cursor.close()
+    return make_api_response({"message": "Employee deleted successfully."})
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
