@@ -1,7 +1,7 @@
 from typing import Dict
 
 MYSQL_CONFIG: Dict[str, object] = {
-	"MYSQL_HOST": "LOCALHOST",
+	"MYSQL_HOST": "127.0.0.1",
 	"MYSQL_USER": "root",
 	"MYSQL_PASSWORD": "leesinmain21",
 	"MYSQL_DB": "apicse",
