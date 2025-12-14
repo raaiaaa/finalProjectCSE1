@@ -10,7 +10,13 @@ from config import apply_mysql_config
 
 app = Flask(__name__)
 apply_mysql_config(app)
+app.config["JWT_SECRET_KEY"] = "change-this-secret"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
+mysql = MySQL(app)
+jwt = JWTManager(app)
+
+EMPLOYEE_FIELDS = ("first_name", "last_name", "age", "address")
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
