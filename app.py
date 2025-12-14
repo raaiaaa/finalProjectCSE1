@@ -78,6 +78,17 @@ def sanitize_employee_payload(payload: Dict[str, Any], partial: bool = False) ->
 
     return True, sanitized
 
+
+def fetch_employee(employee_id: int) -> Dict[str, Any] | None:
+    cursor = mysql.connection.cursor()
+    cursor.execute(
+        "SELECT id, first_name, last_name, age, address FROM employees WHERE id = %s",
+        (employee_id,),
+    )
+    record = cursor.fetchone()
+    cursor.close()
+    return record
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
