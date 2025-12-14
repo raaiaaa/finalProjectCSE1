@@ -108,6 +108,8 @@ def login():
     token = create_access_token(identity=username)
     return make_api_response({"message": "Login successful.", "access_token": token})
 
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
