@@ -37,11 +37,11 @@ The API serves as an interface for any client that understands **HTTP**, **JSON*
 ```
 final-project-cse1/
 │── app.py
+│── config.py
 │── requirements.txt
 │── .gitignore
 │── README.md
-│── tests/
-│   └── test_api.py
+
 ```
 ---
 
