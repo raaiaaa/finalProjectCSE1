@@ -108,7 +108,62 @@ def login():
     token = create_access_token(identity=username)
     return make_api_response({"message": "Login successful.", "access_token": token})
 
+@app.post("/employees")
+@jwt_required()
+def create_employee():
+    payload = request.get_json(silent=True) or {}
+    is_valid, sanitized = sanitize_employee_payload(payload)
+    if not is_valid:
+        return make_api_response({"error": sanitized}, 400)
 
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO employees (first_name, last_name, age, address)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (
+                sanitized["first_name"],
+                sanitized["last_name"],
+                sanitized["age"],
+                sanitized["address"],
+            ),
+        )
+        mysql.connection.commit()
+        new_id = cursor.lastrowid
+    except Exception as exc:
+        mysql.connection.rollback()
+        cursor.close()
+        return make_api_response({"error": "Database error.", "details": str(exc)}, 500)
+
+    cursor.close()
+    employee = fetch_employee(new_id)
+    return make_api_response({"message": "Employee created successfully.", "employee": employee}, 201)
+
+
+@app.get("/employees")
+@jwt_required()
+def list_employees():
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute("SELECT id, first_name, last_name, age, address FROM employees ORDER BY id")
+        employees = cursor.fetchall()
+    except Exception as exc:
+        cursor.close()
+        return make_api_response({"error": "Database error.", "details": str(exc)}, 500)
+
+    cursor.close()
+    return make_api_response({"employees": employees, "count": len(employees)})
+
+
+@app.get("/employees/<int:employee_id>")
+@jwt_required()
+def get_employee(employee_id: int):
+    employee = fetch_employee(employee_id)
+    if not employee:
+        return make_api_response({"error": "Employee not found."}, 404)
+    return make_api_response({"employee": employee})
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
