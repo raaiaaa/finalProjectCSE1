@@ -23,6 +23,25 @@ def get_response_format() -> str:
         raise ValueError("Invalid format. Use ?format=json or ?format=xml.")
     return fmt
 
+def make_api_response(payload: Dict[str, Any], status_code: int = 200):
+    try:
+        fmt = get_response_format()
+    except ValueError as err:
+        payload = {"error": str(err)}
+        status_code = 400
+        fmt = "json"
+
+    if fmt == "xml":
+        xml_payload = dicttoxml(payload, custom_root="response", attr_type=False)
+        response = make_response(xml_payload, status_code)
+        response.headers["Content-Type"] = "application/xml"
+        return response
+
+    response = make_response(jsonify(payload), status_code)
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
