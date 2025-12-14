@@ -41,6 +41,42 @@ def make_api_response(payload: Dict[str, Any], status_code: int = 200):
     response.headers["Content-Type"] = "application/json"
     return response
 
+def sanitize_employee_payload(payload: Dict[str, Any], partial: bool = False) -> Tuple[bool, Any]:
+    if not isinstance(payload, dict):
+        return False, "Request body must be a JSON object."
+
+    sanitized: Dict[str, Any] = {}
+    for key in payload.keys():
+        if key not in EMPLOYEE_FIELDS:
+            return False, f"Unsupported field: {key}"
+
+    for key in EMPLOYEE_FIELDS:
+        if key not in payload:
+            continue
+
+        value = payload[key]
+        if key == "age":
+            try:
+                age_value = int(value)
+            except (TypeError, ValueError):
+                return False, "Age must be an integer."
+            if not 16 <= age_value <= 100:
+                return False, "Age must be between 16 and 100."
+            sanitized[key] = age_value
+            continue
+
+        if not isinstance(value, str) or not value.strip():
+            return False, f"{key.replace('_', ' ').title()} cannot be empty."
+        sanitized[key] = value.strip()
+
+    if not partial:
+        missing = [field for field in EMPLOYEE_FIELDS if field not in sanitized]
+        if missing:
+            return False, "Missing fields: " + ", ".join(missing)
+    elif not sanitized:
+        return False, "Provide at least one field to update."
+
+    return True, sanitized
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
