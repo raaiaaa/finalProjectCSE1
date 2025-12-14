@@ -89,6 +89,25 @@ def fetch_employee(employee_id: int) -> Dict[str, Any] | None:
     cursor.close()
     return record
 
+@app.get("/")
+def index():
+    return make_api_response({"message": "CSE1 Final Project API is running."})
+
+@app.post("/login")
+def login():
+    credentials = request.get_json(silent=True) or {}
+    username = (credentials.get("username") or "").strip()
+    password = (credentials.get("password") or "").strip()
+
+    if not username or not password:
+        return make_api_response({"error": "Username and password are required."}, 400)
+
+    if username != "admin" or password != "password123":
+        return make_api_response({"error": "Invalid username or password."}, 401)
+
+    token = create_access_token(identity=username)
+    return make_api_response({"message": "Login successful.", "access_token": token})
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
