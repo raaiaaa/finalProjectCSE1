@@ -212,6 +212,31 @@ def delete_employee(employee_id: int):
     cursor.close()
     return make_api_response({"message": "Employee deleted successfully."})
 
+@app.get("/search")
+@jwt_required()
+def search_employees():
+    field = (request.args.get("field") or "").strip().lower()
+    value = (request.args.get("value") or "").strip()
+    if not field or not value:
+        return make_api_response({"error": "Provide both field and value parameters."}, 400)
+
+    if field not in EMPLOYEE_FIELDS:
+        return make_api_response({"error": f"Search field must be one of: {', '.join(EMPLOYEE_FIELDS)}."}, 400)
+
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute(
+            f"SELECT id, first_name, last_name, age, address FROM employees WHERE {field} LIKE %s",
+            (f"%{value}%",),
+        )
+        matches = cursor.fetchall()
+    except Exception as exc:
+        cursor.close()
+        return make_api_response({"error": "Database error.", "details": str(exc)}, 500)
+
+    cursor.close()
+    return make_api_response({"query": {"field": field, "value": value}, "results": matches, "count": len(matches)})
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 
