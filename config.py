@@ -1,10 +1,10 @@
 from typing import Dict
 
 MYSQL_CONFIG: Dict[str, object] = {
-	"MYSQL_HOST": "localhost",
+	"MYSQL_HOST": "LOCALHOST",
 	"MYSQL_USER": "root",
-	"MYSQL_PASSWORD": "root",
-	"MYSQL_DB": "rudge",
+	"MYSQL_PASSWORD": "leesinmain21",
+	"MYSQL_DB": "apicse",
 	"MYSQL_PORT": 3306,
 	"MYSQL_CURSORCLASS": "DictCursor",
 }
